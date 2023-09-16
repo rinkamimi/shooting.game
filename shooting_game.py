@@ -109,7 +109,8 @@ msl_p = [0]*MISSILE_MAX     # 弾の移動範囲
 # =============== ENEMY ===============
 # 敵
 ENEMY_MAX = 1000            # 敵の最大数
-emy_no = 0                  # 敵の配列の添字/現在の敵キャラクターのインデックスを保持する変数/新しい敵キャラクターを生成する際に次の使用可能なインデックスを示すために使用
+emy_no = 0                  #敵の配列の添字/現在の敵キャラクターのインデックスを保持する変数/
+#新しい敵キャラクターを生成する際に次の使用可能なインデックスを示すために使用
 emy_f = [False]*ENEMY_MAX   # 敵が存在するか
 emy_x = [0]*ENEMY_MAX       # x座標(敵の中心)
 emy_y = [0]*ENEMY_MAX       # y座標(敵の中心)
@@ -274,7 +275,7 @@ def move_player(sc, key, mx, my, mb):
         if emy_f[i] == True:
             w = img_enemy[emy_type[i]].get_width() * img_size
             h = img_enemy[emy_type[i]].get_height() * img_size
-            r = int((w+h)/4 + (80+80)/4)
+            r = int((w+h)/4 + (80+80)/4)#/2にすると敵の弾のサイズよりも小さい場合に、当たり判定が発生したと判断より精度あがる
             # ヒットチェック
             if get_dis(emy_x[i], emy_y[i], pl_x, pl_y) < r*r:
                 snd_pl_damage.play()
@@ -455,6 +456,7 @@ def set_enemy(x, y, ty, a, sp, sh): #敵関数の設定
         emy_no = (emy_no+1)%ENEMY_MAX   #emy_no の値を次の敵キャラクターのインデックスに更新emy_no+1
         #ENEMY_MAX を超えないように制限%ENEMY_MAX
         #(emy_no+1): 現在の emy_no の値に1を加えます。これにより、次のインデックスに進むことができru。
+
 
 
 # ******************** 敵機の移動 ********************
