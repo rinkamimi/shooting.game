@@ -58,15 +58,15 @@ snd_emy_muteki = None   # 無敵状態の弾をはじく音
 snd_blk_damage = None   # ブロックのダメージ音
 
 # ******************** 変数／定数の宣言 ********************
-idx = 0
-tmr = 0
+idx = 0 #ステージ
+tmr = 0 #ゲーム内でタイミングをあわせるためのフレーム時間
 restart = 0
-img_size = 0
+img_size = 0.01
 
-FIELD_SIZE = 960
-SCREEN_SIZE = 960
+FIELD_SIZE = 640
+SCREEN_SIZE = 640
 HALF_SCREEN_SIZE = int(SCREEN_SIZE/2)
-PIXEL_SIZE = 80
+PIXEL_SIZE = 8
 HALF_PIXEL_SIZE = int(PIXEL_SIZE/2)
 # フィールドの領域
 LINE_T = 0 + HALF_PIXEL_SIZE
@@ -86,7 +86,7 @@ pl_y = 0                    # y座標(機体の中心)
 pl_a = 0                    # 角度
 pl_d = 0                    # 移動方向(キー入力)
 pl_s = 20                   # 移動スピード
-pl_shield = 3               # シールド(体力)
+pl_shield = 100000             # シールド(体力)
 pl_muteki = 0               # 無敵状態(時間)
 click = 0
 # 弾(プレイヤー)
@@ -124,7 +124,7 @@ EMY_NORMAL_SPEED = 5
 EMY_HIGH_SPEED = 10
 # 敵のシールド
 EMY_SHIELD = 5
-BOSS_SHIELD = 20
+BOSS_SHIELD = 20000
 # =============== ENEMY(BULLET) ===============
 # 弾(敵)
 EFFECT_MAX = 100            # 爆発の最大数
@@ -138,7 +138,7 @@ BUL_STRAIGHT_1 = 1
 BUL_TRACKING = 2
 # 弾のスピード
 BUL_LOW_SPEED = 4
-BUL_NORMAL_SPEED = 8
+BUL_NORMAL_SPEED = 9
 BUL_HIGH_SPEED = 12
 # 弾のシールド
 BUL_SHIELD_1 = 1
@@ -233,6 +233,30 @@ def move_player(sc, key, mx, my, mb):
         if check_block(pl_x, pl_y, pl_d, pl_s, False) == False:
             pl_x = pl_x + pl_s
             if pl_x > LINE_R:
+                pl_x = LINE_R    
+    if key[pygame.K_w] == 1: # 上方向
+        pl_d = DIR_UP
+        if check_block(pl_x, pl_y, pl_d, pl_s, False) == False:
+            pl_y = pl_y - pl_s
+            if pl_y < LINE_T:
+                pl_y = LINE_T
+    if key[pygame.K_s] == 1: # 下方向
+        pl_d = DIR_DOWN
+        if check_block(pl_x, pl_y, pl_d, pl_s, False) == False:
+            pl_y = pl_y + pl_s
+            if pl_y > LINE_B:
+                pl_y = LINE_B
+    if key[pygame.K_a] == 1: # 左方向
+        pl_d = DIR_LEFT
+        if check_block(pl_x, pl_y, pl_d, pl_s, False) == False:
+            pl_x = pl_x - pl_s
+            if pl_x < LINE_L:
+                pl_x = LINE_L
+    if key[pygame.K_d] == 1: # 右方向
+        pl_d = DIR_RIGHT
+        if check_block(pl_x, pl_y, pl_d, pl_s, False) == False:
+            pl_x = pl_x + pl_s
+            if pl_x > LINE_R:
                 pl_x = LINE_R
     
     # マウスのx座標とy座標 -> プレイヤーとマウスの座標の距離 -> 角度の算出
@@ -270,7 +294,7 @@ def move_player(sc, key, mx, my, mb):
                 
                 # 無敵状態を設定
                 if pl_muteki == 0:
-                    pl_muteki = 60
+                    pl_muteki = 20
                 # 接触した敵のシールドを減らす
                 emy_shield[i] -= 1
                 break
@@ -323,12 +347,14 @@ def bring_enemy(): # 敵を出す
     global idx, tmr
     
     if idx == 1 and tmr == 1:
-        set_enemy(FIELD_SIZE/2, 200, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
+        set_enemy(FIELD_SIZE/2, 50, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
+        #set_enemy(FIELD_SIZE/3, 200, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)二体目
+
 
     if idx == 2 and tmr == 1:
-        
-        set_enemy(700, 300, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
-        set_enemy(FIELD_SIZE/3, 150, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
+    #ボス
+        set_enemy(500, 200, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
+        set_enemy(FIELD_SIZE/3, 50, BOSS, 0, EMY_SPEED_0, BOSS_SHIELD)
 
     if idx == 3 and tmr == 1:
         # ボス
@@ -339,91 +365,20 @@ def bring_enemy(): # 敵を出す
 
     if idx == 4 and tmr == 1:
         # ボス
-        set_enemy(FIELD_SIZE/2, FIELD_SIZE/2, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
-        # 敵：設置タイプ
-        pos = 150
-        set_enemy(pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(150, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
+        set_enemy(600, 50, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
+        set_enemy(50, 550, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
+        # 敵：追尾タイプ
+        set_enemy(80, 200, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
+        set_enemy(600, 300, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
 
     if idx == 5 and tmr == 1:
         # ボス
-        set_enemy(FIELD_SIZE/2, 100, BOSS_MUTEKI, 0, BOSS_SPEED, BOSS_SHIELD)
-        # 敵：設置タイプ
-        pos = 150
-        set_enemy(pos, pos, EMY_FIXED, 0, 0, EMY_SHIELD)
-        set_enemy(150, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
+        set_enemy(400, 60, BOSS_MUTEKI, 0, BOSS_SPEED , BOSS_SHIELD)
         # 敵：追尾タイプ
-        for xpos in range(320, 320+80*4+10, 80):
-            set_enemy(xpos, 300, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
+        for xpos in range(80, 960, 200):
+                set_enemy(xpos, 0, EMY_TRACKING_0, 0, EMY_NORMAL_SPEED, EMY_SHIELD)
 
-    if idx == 6 and tmr == 1:
-        # ボス
-        set_enemy(FIELD_SIZE/2, 100, BOSS_MUTEKI, 0, BOSS_SPEED, BOSS_SHIELD)
-        # 敵：設置タイプ
-        pos = 150
-        set_enemy(pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(150, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE-pos, FIELD_SIZE-pos, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(FIELD_SIZE/2, 360, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(300, FIELD_SIZE/2, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(660, FIELD_SIZE/2, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-
-    if idx == 7 and tmr == 1:
-        # ボス
-        set_enemy(FIELD_SIZE/2, FIELD_SIZE/2, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
-        # 敵：設置タイプ
-        set_enemy(280, 480, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(680, 480, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        # 敵：追尾タイプ
-        for x in range(80, 900, 200):
-            set_enemy(x, 140, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        for x in range(180, 800, 200):
-            set_enemy(x, 240, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        for x in range(280, 700, 200):
-            set_enemy(x, 340, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-
-    if idx == 8 and tmr == 1:
-        # ボス
-        set_enemy(480, 240, BOSS_MUTEKI, 0, BOSS_SPEED, BOSS_SHIELD)
-        # 敵：設置タイプ
-        set_enemy(100, 900, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(750, 720, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        # 敵：追尾タイプ
-        set_enemy(260, 100, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(700, 150, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(250, 300, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(650, 480, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(150, 500, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(900, 600, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        set_enemy(60, 750, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-
-    if idx == 9 and tmr == 1:
-        # ボス
-        set_enemy(FIELD_SIZE/2, FIELD_SIZE/2, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
-        # 敵：追尾タイプ
-        for x in range(80, 960, 200):
-            set_enemy(x, 100, EMY_TRACKING_0, 0, EMY_LOW_SPEED, EMY_SHIELD)
-        for x in range(80, 960, 400):
-            set_enemy(x, 200, EMY_TRACKING_1, 0, EMY_HIGH_SPEED, EMY_SHIELD)
-
-    if idx == 10 and tmr == 1:
-        # ボス
-        set_enemy(FIELD_SIZE/2, FIELD_SIZE/2, BOSS_MUTEKI, 0, EMY_SPEED_0, BOSS_SHIELD)
-        # 敵：設置タイプ
-        set_enemy(200, 200, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(760, 200, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(200, 760, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        set_enemy(760, 760, EMY_FIXED, 0, EMY_SPEED_0, EMY_SHIELD)
-        
-        
-        
-            
-        
+    
 
 # ******************** 敵機をセット ********************
 def set_enemy(x, y, ty, a, sp, sh):
@@ -551,155 +506,59 @@ def set_bullet(no):
     
     if idx == 1 and tmr > 10:
         # ボス：プレイヤーに向かって打つ
-        if tmr%5 == 0:
-            rand_num = random.randint(0, 10)
-            if rand_num <= 2:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, emy_a[no], EMY_HIGH_SPEED, BUL_SHIELD_1)
+            rand_num = random.randint(0, 10)#0～10までの間の値をランダムで
+            if rand_num <= 8:
+                
+                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
             else:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], EMY_HIGH_SPEED, BUL_SHIELD_1)
+                snd_emy_bullet.play()#打つ音をplayで再生
+                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, emy_a[no], BUL_LOW_SPEED*0.8, BUL_SHIELD_1)
+
 
     if idx == 2 and tmr > 10:
-        # ボス：ランダムの角度に打つ
-        rand_num = random.randint(0, 10)
-        rand_a = random.randint(0, 360)
-
-        if rand_num <= 2:
-            snd_emy_bullet.play()
-            set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, EMY_HIGH_SPEED, BUL_SHIELD_1)
-        else:
-            snd_emy_bullet.play()
-            set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, EMY_HIGH_SPEED, BUL_SHIELD_1)
+        if emy_type[no] == BOSS:
+            if tmr%60 == 0:#60フレーム毎に
+                snd_emy_bullet.play()
+                for a in range(0, 370, 30):
+                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, a+tmr%360, BUL_LOW_SPEED*0.8, BUL_SHIELD_1)
 
     if idx == 3 and tmr > 10:
-        # ボス：ランダムの角度に打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%2 == 0:
+            if tmr%60 == 0:#60フレーム毎に
                 snd_emy_bullet.play()
-                rand_a = random.randint(0, 360)
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        # 敵：プレイヤーに向かって打つ
-        else:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
+                for a in range(0, 370, 90):
+                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
+
 
     if idx == 4 and tmr > 10:
         # ボス：プレイヤーに向かって打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%10 == 0:
+            if tmr%15 == 0:#15フレーム毎に
                 snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
+                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
+           
         #　敵：4方向に向かって打つ
         if emy_type[no] == EMY_FIXED:
-            if tmr%40 == 0:
+            if tmr%60 == 0:#60フレーム毎に
                 snd_emy_bullet.play()
                 for a in range(0, 370, 90):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
+                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
 
     if idx == 5 and tmr > 10:
-        # ボス：プレイヤーに向かって打つ
         if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%10 == 0:
-                snd_emy_bullet.play()
-                rand_num = random.randint(0, 1)
-                if rand_num == 0:
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
-                elif rand_num == 1:
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        # 敵：設置タイプ
-        if emy_type[no] == EMY_FIXED:
-            if tmr%90 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_TRACKING, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_3)
-        # 敵：追尾タイプ
-        if emy_type[no] == EMY_TRACKING_0:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_1)
-
-    if idx == 6 and tmr > 10:
-        # ボス：ランダムの角度に打つ
-        if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%2 == 0:
-                snd_emy_bullet.play()
+            if tmr%6 == 0:#フレーム毎に
+                rand_num = random.randint(0, 10)
                 rand_a = random.randint(0, 360)
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, BUL_HIGH_SPEED, BUL_SHIELD_1)
-        # 敵：設置タイプ
-        if emy_type[no] == EMY_FIXED:
-            if tmr%60 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 370, 60):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-
-    if idx == 7 and tmr > 10:
-        # ボス：周囲に向かって打つ
-        if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 370, 30):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        # 敵：設置タイプ
-        if emy_type[no] == EMY_FIXED:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 370, 90):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        # 敵：追尾タイプ
-        if emy_type[no] == EMY_TRACKING_0:
-            if tmr%120 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_1)
-
-    if idx == 8 and tmr > 10:
-        # ボス：ランダムの角度に打つ
-        if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%5 == 0:
-                snd_emy_bullet.play()
-                rand_a = random.randint(0, 360)
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        # 敵：設置タイプ
-        if emy_type[no] == EMY_FIXED:
-            if tmr%120 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_TRACKING, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_3)
-        # 敵：追尾タイプ
-        if emy_type[no] == EMY_TRACKING_0:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_LOW_SPEED, BUL_SHIELD_1)
-
-    if idx == 9 and tmr > 10:
-        # ボス：周囲に打つ
-        if emy_type[no] == BOSS or emy_type[no] == BOSS_MUTEKI:
-            if tmr%5 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 360, 60):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-                for a in range(30, 390, 60):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-
-    if idx == 10 and tmr > 10:
-        # ボス：プレイヤーに向かって打つ
-        if emy_type[no] == BOSS_MUTEKI:
-            if tmr%10 == 0:
-                snd_emy_bullet.play()
-                set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, emy_a[no], BUL_NORMAL_SPEED, BUL_SHIELD_1)
-        if emy_type[no] == BOSS:
-            if tmr%5 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 360, 40):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-                
-        # 敵：設置タイプ
-        if emy_type[no] == EMY_FIXED:
-            if tmr%30 == 0:
-                snd_emy_bullet.play()
-                for a in range(0, 360, 60):
-                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, a+tmr%360, BUL_NORMAL_SPEED, BUL_SHIELD_1)
-
-                    
+                if rand_num <= 2:
+                    snd_emy_bullet.play()
+                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_0, rand_a, BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
+                elif rand_num == 3:
+                    snd_emy_bullet.play()
+                    set_enemy(emy_x[no], emy_y[no], BUL_TRACKING, rand_a, BUL_LOW_SPEED*0.8, BUL_SHIELD_1)
+                else:
+                    snd_emy_bullet.play()
+                    set_enemy(emy_x[no], emy_y[no], BUL_STRAIGHT_1, rand_a, BUL_NORMAL_SPEED*0.8, BUL_SHIELD_1)
+                       
 
 # ============================================================
 #                           BLOCK
@@ -725,29 +584,7 @@ def make_block():
         set_block(480, 480, RED_BLOCK)
         set_block(240, 720, RED_BLOCK)
         set_block(720, 720, RED_BLOCK)
-
-    if idx == 8:
-        # 赤いブロック
-        set_block(120, 200, RED_BLOCK)
-        set_block(800, 240, RED_BLOCK)
-        set_block(560, 700, RED_BLOCK)
-        set_block(200, 720, RED_BLOCK)
-        set_block(740, 800, RED_BLOCK)
-
-    if idx == 10:
-        # 白いブロック
-        set_block(200, 480, WHITE_BLOCK)
-        set_block(760, 480, WHITE_BLOCK)
-        # 赤いブロック
-        for x in range(100, 900, 60):
-            set_block(x, 40, RED_BLOCK)
-            set_block(x, 930, RED_BLOCK)
-        for y in range(40, 960, 60):
-            set_block(40, y, RED_BLOCK)
-            set_block(940, y, RED_BLOCK)
-
-
-        
+   
 # ******************** ブロックをセット ********************
 def set_block(x, y, ty):
     global block_no
@@ -882,13 +719,9 @@ def draw_effect(sc):
                     if emy_f[j] == True:
                         # 無敵状態のボス以外
                         if emy_type[j] != BOSS_MUTEKI:
-                            # 爆発の範囲に敵がいる場合、敵と敵の弾にダメージ
-                            if get_dis(emy_x[j], emy_y[j], pl_x, pl_y) < (100+200*(eff_p[i]-6))/2*img_size * (100+200*(eff_p[i]-6))/2*img_size:
-                                emy_shield[j] -= 1
-                                set_effect(emy_x[j], emy_y[j], True)
                             if emy_shield[j] <= 0:
                                 emy_f[j] = False
-            
+            #ここにかいてあった爆発の範囲に敵がいる場合、敵と敵の弾にダメージを消した（現時点：画像は広範囲に爆発だけど、ダメージは与えていない）
             eff_p[i] = eff_p[i] + 1
 
             if eff_p[i] == 6 or eff_p[i] == 11:
@@ -908,7 +741,13 @@ def draw_screen(sc, key, mx, my, mb):
     move_missile(sc)
     bring_enemy()
     move_enemy(sc)
+    #draw_hp(sc)
 
+
+# ******************** プレイヤのHPの表示 ********************
+#def draw_hp(sc):
+    #global pl_shield,idx,tmr
+    #draw_text(sc, "{}".format(str(pl_shield)), 50, 50, 110, RED)
 
 # ******************** タイトル画面の表示 ********************
 def draw_title(sc, mx, my, mb):
@@ -928,22 +767,16 @@ def draw_title(sc, mx, my, mb):
         draw_text(sc, "GAME START", SCREEN_SIZE/2, 600, 80, BLACK)
 
     # 文字の描画：SELECT COURSE(コース選択)
-    if 240 < mx < 720 and 700 < my < 750:
+    if 240 < mx < 720 and 30 < my < 300:
         if tmr%30 < 20: # 点滅表示
-            draw_text(sc, "SELECT COURSE", SCREEN_SIZE/2, 730, 80, BLACK)
+            draw_text(sc, "SELECT COURSE", SCREEN_SIZE/2, 30, 80, BLACK)
         if mb == True:  # クリック
             idx = -2
     else:
-        draw_text(sc, "SELECT COURSE", SCREEN_SIZE/2, 730, 80, BLACK)
+        draw_text(sc, "SELECT COURSE", SCREEN_SIZE/2, 30, 80, BLACK)
 
     # 文字の描画：HOW TO PLAY(遊び方)
-    if 280 < mx < 680 and 830 < my < 880:
-        if tmr%30 < 20: # 点滅表示
-            draw_text(sc, "HOW TO PLAY", SCREEN_SIZE/2, 860, 80, BLACK)
-        if mb == True:  # クリック
-            idx = -3
-    else:
-        draw_text(sc, "HOW TO PLAY", SCREEN_SIZE/2, 860, 80, BLACK)
+    
     
     # 画像の描画：マウスの座標位置
     sc.blit(img_player, [mx-img_player.get_width()/2, my-img_player.get_height()/2])
@@ -953,15 +786,15 @@ def draw_title(sc, mx, my, mb):
 def draw_select_course(sc, mx, my, mb):
     global idx, tmr
     
-    for i in range(1, 11):
-        if 100 < mx < 300 and i*70+90 < my < i*70+130:
+    for i in range(1, 6):
+        if 100 < mx < 300 and i*70+60 < my < i*70+100:
             if tmr%30 < 20: # 点滅表示
-                draw_text(sc, "COURSE  {}".format(i), 200, i*70+110, 50, BLACK)
+                draw_text(sc, "COURSE  {}".format(i), 200, i*70+80, 20, BLACK)
             if mb == True:  # クリック
                 idx = i
                 tmr = 0
         else:
-            draw_text(sc, "COURSE  {}".format(i), 200, i*70+110, 50, BLACK)
+            draw_text(sc, "COURSE  {}".format(i), 200, i*70+80, 20, BLACK)
 
 
 # ******************** 遊び方画面の表示 ********************
@@ -969,39 +802,15 @@ def draw_rule(sc, mx, my, mb):
     global idx, tmr
 
     # 画面の描画
-    sc.blit(img_rule[-1*idx-3], [0, 0])
+   
 
     # 文字の描画：BACK
-    if idx < -3:
-        if 10 < mx < 160 and 910 < my < 950:
-            if tmr%30 > 20: # 点滅表示
-                draw_text(sc, "<- BACK", 80, 930, 50, BLACK)
-            if mb == True:  # クリック
-                idx += 1
-                tmr = 0
-        else:
-            draw_text(sc, "<- BACK", 80, 930, 50, BLACK)
-
+    
     # 文字の描画：TITLE
-    if 420 < mx < 540 and 910 < my < 950:
-        if tmr%30 > 20: # 点滅表示
-            draw_text(sc, "TITLE", 480, 930, 50, BLACK)
-        if mb == True:  # クリック
-            idx = 0
-            tmr = 0
-    else:
-        draw_text(sc, "TITLE", 480, 930, 50, BLACK)
+    
 
     # 文字の描画：NEXT
-    if idx > -4:
-        if 810 < mx < 950 and 910 < my < 950:
-            if tmr%30 > 20: # 点滅表示
-                draw_text(sc, "NEXT ->", 880, 930, 50, BLACK)
-            if mb == True:  # クリック
-                idx -= 1
-                tmr = 0
-        else:
-            draw_text(sc, "NEXT ->", 880, 930, 50, BLACK)
+   
             
 
 # ============================================================
@@ -1037,8 +846,8 @@ def game_init():
     global pl_x, pl_y, pl_shield, pl_muteki
     
     pl_x = FIELD_SIZE/2
-    pl_y = FIELD_SIZE - 200
-    pl_shield = 3
+    pl_y = FIELD_SIZE - 50 #最初のプレイヤーの位置
+    pl_shield = 100000
     pl_muteki = 0
                 
     for i in range(MISSILE_MAX):
@@ -1064,7 +873,7 @@ def main():
     pygame.init()
     pygame.display.set_caption("Hacking Game")
 
-    screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+    screen = pygame.display.set_mode((SCREEN_SIZE,SCREEN_SIZE))
     clock = pygame.time.Clock()
 
     # 音楽
@@ -1096,8 +905,9 @@ def main():
         mBtn_1, mBtn_2, mBtn_3 = pygame.mouse.get_pressed()
 
         # 画像の表示サイズ変更
-        if idx <= 6:
-            img_size = 1.0
+        if idx -1<1 and 1<= 5:
+            img_size = 0.7
+            
         elif idx <= 10:
             img_size = 0.75
 
@@ -1135,11 +945,12 @@ def main():
             draw_title(screen, mouseX, mouseY, mBtn_1)
             
         # ゲームプレイ
-        elif 1 <= idx <= 10:
+        elif 1 <= idx <= 5:
             # 初期設定
             if tmr == 1:
                 game_init()
                 make_block()
+                #draw_hp(screen)
 
             # シールドが0の場合はゲームオーバー
             if pl_shield <= 0:
@@ -1167,7 +978,7 @@ def main():
                 tmr = 0
 
         # 全コースクリア
-        elif idx == 11:
+        elif idx == 6:
             if tmr > 20:
                 draw_text(screen, "GAME CLEAR", SCREEN_SIZE/2, SCREEN_SIZE/2, 80, SILVER)
 
